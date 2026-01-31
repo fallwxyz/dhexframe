@@ -1,0 +1,21 @@
+RewriteEngine On
+
+RewriteCond %{THE_REQUEST} \s/dhex\.php[\s?] [NC]
+RewriteRule ^dhex\.php$ - [F,L]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php -f
+RewriteRule ^$ dhex.php [L]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php !-f
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^$ index.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php -f
+RewriteRule ^(.*)$ dhex.php?page=$1 [L,QSA]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php !-f
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^(.*)$ index.php?page=$1 [L,QSA]
