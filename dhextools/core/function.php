@@ -1,110 +1,50 @@
-<?php
-function dhex($key = "all")
-{
-    if ($key != "all") {
-        return DhexConfig::get($key);
-    }
-    return DhexConfig::all();
-}
-
-function updateDhexValue(string $key, string $value): void
-{
-    $path = realpath(__DIR__ . '/../../.dhex');
-    if (!$path || !is_writable($path)) {
-        return;
-    }
-
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    $found = false;
-
-    foreach ($lines as &$line) {
-        if (str_starts_with(trim($line), $key . '=')) {
-            $line  = $key . '=' . $value;
-            $found = true;
-        }
-    }
-
-    // kalau key belum ada, tambahkan
-    if (!$found) {
-        $lines[] = $key . '=' . $value;
-    }
-
-    file_put_contents($path, implode(PHP_EOL, $lines) . PHP_EOL);
-}
-
-function installRouteSystem(): void
-{
-    if (dhex('system') !== 'route') {
-        return;
-    }
-
-    $root     = realpath(__DIR__ . '/../../');
-    $template = $root . '/dhextools/template';
-
-    $files = [
-        'dhex.php',
-        '.htaccess'
+<?php 
+function tanggal(
+    string $format,
+    int $timestamp = null,
+    string $timezone = 'Jakarta'
+): string {
+    // Alias timezone singkat
+    $tzAlias = [
+        'Jakarta' => 'Asia/Jakarta',
+        'Tokyo'   => 'Asia/Tokyo',
+        'Seoul'   => 'Asia/Seoul',
+        'London'  => 'Europe/London',
+        'NY'      => 'America/New_York',
     ];
 
-    foreach ($files as $file) {
-        $source = $template . '/' . $file;
-        $target = $root . '/' . $file;
+    $tzName = $tzAlias[$timezone] ?? $timezone;
 
-        if (!file_exists($source)) {
-            continue;
-        }
-
-        // 🔥 salin paksa (overwrite)
-        copy($source, $target);
-    }
-
-    // 🗑️ hapus index.php di root jika ada
-    $index = $root . '/index.php';
-    if (file_exists($index)) {
-        unlink($index);
-    }
-
-    // ✍️ ubah system jadi classic
-    updateDhexValue('system', 'classic');
-}
-
-
-function conf($type = 'singleton', $connection = 'mysql')
-{
-    if ($type == 'singleton' || $type == 's') {
-        return SingletonDatabase::getInstance();
-    }
-    $db = new Database;
-    return $db->getConnection();
-}
-
-function parse(?int $index = null): string|null
-{
-    $uri = $_SERVER['REQUEST_URI'] ?? null;
-    if (!$uri) {
-        return "null";
-    }
-
-    $path = parse_url($uri, PHP_URL_PATH);
-    $path = trim($path, '/');
-
-    if ($path === '') {
-        return "null";
-    }
-
-    $segments = explode('/', $path);
-
-    // bikin index mulai dari 1
-    $segments = array_combine(
-        range(1, count($segments)),
-        $segments
+    $dt = new DateTime(
+        '@' . ($timestamp ?? time())
     );
+    $dt->setTimezone(new DateTimeZone($tzName));
 
-    // kalau parse(angka)
-    if ($index !== null) {
-        return $segments[$index] ?? "null";
-    }
+    $hari = [
+        'minggu', 'senin', 'selasa', 'rabu',
+        'kamis', 'jumat', 'sabtu'
+    ];
 
-    // kalau parse() → balikin string
-    return implode('/', $segments);
+    $bulan = [
+        1 => 'januari', 'februari', 'maret', 'april',
+        'mei', 'juni', 'juli', 'agustus',
+        'september', 'oktober', 'november', 'desember'
+    ];
+
+    $map = [
+        'd' => $dt->format('H'),                // jam
+        'm' => $dt->format('i'),                // menit
+        'j' => $dt->format('s'),                // detik
+        'h' => $dt->format('d'),                // tanggal
+        'H' => $hari[$dt->format('w')],         // hari teks
+        'b' => (int) $dt->format('n'),          // bulan angka
+        'B' => $bulan[(int) $dt->format('n')],  // bulan teks
+        't' => $dt->format('Y'),                // tahun
+    ];
+
+    return preg_replace_callback('/[a-zA-Z]/', function ($m) use ($map) {
+        return $map[$m[0]] ?? $m[0];
+    }, $format);
 }
+
+?>

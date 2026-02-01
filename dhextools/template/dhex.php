@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/dhextools/core/core.php';
 
-$page = $_GET['page'] ?? 'dhex';
+$page = page();
 $view = __DIR__ . "/dhextools/page/";
 $host = dhex('app_url');
 
 switch ($page) {
     case "dhex":
-        echo "Welcome to DHEX Frame";
+        echo tanggal('d');
         break;
 
     default:
