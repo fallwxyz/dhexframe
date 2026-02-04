@@ -30,6 +30,57 @@ function updateDhexValue(string $key, string $value): void
 
     file_put_contents($path, implode(PHP_EOL, $lines) . PHP_EOL);
 }
+function createHtaccess(string $root): void
+{
+    $htaccessPath = $root . '/.htaccess';
+
+    // Jika sudah ada, tidak perlu ditimpa
+    if (file_exists($htaccessPath)) {
+        return;
+    }
+
+    $content = <<<HTACCESS
+RewriteEngine On
+
+RewriteCond %{THE_REQUEST} \\s/dhex\\.php[\\s?] [NC]
+RewriteRule ^dhex\\.php$ - [F,L]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php -f
+RewriteRule ^$ dhex.php [L]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php !-f
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^$ index.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php -f
+RewriteRule ^(.*)$ dhex.php?page=$1 [L,QSA]
+
+RewriteCond %{DOCUMENT_ROOT}/dhex.php !-f
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteRule ^(.*)$ index.php?page=$1 [L,QSA]
+HTACCESS;
+
+    file_put_contents($htaccessPath, $content);
+}
+
+function installDhexEntry(string $root): void
+{
+    $template = $root . '/dhextools/template';
+    $source   = $template . '/dhex.php';
+    $target   = $root . '/dhex.php';
+
+    if (!file_exists($source)) {
+        return;
+    }
+
+    // Jangan timpa jika sudah ada
+    if (!file_exists($target)) {
+        copy($source, $target);
+    }
+}
 
 function installRouteSystem(): void
 {
@@ -37,24 +88,10 @@ function installRouteSystem(): void
         return;
     }
 
-    $root     = realpath(__DIR__ . '/../../');
-    $template = $root . '/dhextools/template';
+    $root = realpath(__DIR__ . '/../../');
 
-    $files = [
-        'dhex.php',
-        '.htaccess'
-    ];
-
-    foreach ($files as $file) {
-        $source = $template . '/' . $file;
-        $target = $root . '/' . $file;
-
-        if (!file_exists($source)) {
-            continue;
-        }
-
-        copy($source, $target);
-    }
+    installDhexEntry($root);   // ← ini yang tadi hilang
+    createHtaccess($root);
 
     $index = $root . '/index.php';
     if (file_exists($index)) {
@@ -63,6 +100,8 @@ function installRouteSystem(): void
 
     updateDhexValue('system', 'classic');
 }
+
+
 
 
 function conf($type = 'singleton', $connection = 'mysql')
