@@ -12,7 +12,7 @@ final class DhexConfig
 
         $default = <<<DHEX
 # DO NOT EDIT system MANUALLY AFTER INSTALL
-app_url=dhexframe
+app_url=http://localhost/dhexframe
 system=route
 
 hostname=localhost

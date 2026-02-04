@@ -47,4 +47,66 @@ function tanggal(
     }, $format);
 }
 
+function rp($value, $mode = null)
+{
+    $angka = (int) preg_replace('/[^0-9]/', '', $value);
+
+    if ($mode === 't') {
+        return $angka;
+    }
+
+    return 'Rp ' . number_format($angka, 0, ',', '.');
+}
+
+function api(
+    string $method,
+    string $url,
+    array $required = [],
+    array $optional = [],
+    array $headers = []
+) {
+    $method = strtoupper($method);
+
+    // validasi parameter wajib
+    foreach ($required as $key => $value) {
+        if ($value === null || $value === '') {
+            throw new Exception("Parameter '$key' wajib dikirim");
+        }
+    }
+
+    $payload = array_merge($required, $optional);
+
+    $ch = curl_init();
+
+    // GET → query string
+    if ($method === 'GET' && !empty($payload)) {
+        $url .= '?' . http_build_query($payload);
+    }
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST  => $method,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_HTTPHEADER     => array_merge([
+            'Content-Type: application/x-www-form-urlencoded'
+        ], $headers),
+    ]);
+
+    // selain GET kirim body
+    if ($method !== 'GET') {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+    }
+
+    $response = curl_exec($ch);
+
+    if ($response === false) {
+        throw new Exception(curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    return json_decode($response, true) ?? $response;
+}
+
 ?>
