@@ -21,7 +21,7 @@ function tanggal(
     $dt->setTimezone(new DateTimeZone($tzName));
 
     $hari = [
-        'minggu', 'senin', 'selasa', 'rabu',
+        'minggu','senin', 'selasa', 'rabu',
         'kamis', 'jumat', 'sabtu'
     ];
 
@@ -32,9 +32,9 @@ function tanggal(
     ];
 
     $map = [
-        'd' => $dt->format('H'),                // jam
+        'd' => $dt->format('s'),                // jam
         'm' => $dt->format('i'),                // menit
-        'j' => $dt->format('s'),                // detik
+        'j' => $dt->format('H'),                // detik
         'h' => $dt->format('d'),                // tanggal
         'H' => $hari[$dt->format('w')],         // hari teks
         'b' => (int) $dt->format('n'),          // bulan angka

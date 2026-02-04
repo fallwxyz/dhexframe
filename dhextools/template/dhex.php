@@ -1,13 +1,14 @@
 <?php
 require_once __DIR__ . '/dhextools/core/core.php';
-
 $page = page();
 $view = __DIR__ . "/dhextools/page/";
 $host = dhex('app_url');
 
 switch ($page) {
     case "dhex":
-        echo tanggal('d');
+        echo tanggal('d:m:j | h / b / t') . "<br>";
+        echo tanggal('d:m:j |  H / B / t') . "<br>";
+        echo loadTime();
         break;
 
     default:

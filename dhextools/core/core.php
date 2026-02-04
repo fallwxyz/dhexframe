@@ -16,3 +16,4 @@ foreach ([] as $key) {
         throw new Exception("The '$key' configuration has not been set in .dhex");
     }
 }
+startPageLoadTimer();

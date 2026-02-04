@@ -1,4 +1,30 @@
 <?php
+function startPageLoadTimer(): void
+{
+    $GLOBALS['__PAGE_START_TIME__'] = microtime(true);
+}
+
+function getPageLoadTime(int $precision = 4): float
+{
+    if (!isset($GLOBALS['__PAGE_START_TIME__'])) {
+        return 0.0;
+    }
+
+    return round(microtime(true) - $GLOBALS['__PAGE_START_TIME__'], $precision);
+}
+
+function loadTime(): string
+{
+    $time = getPageLoadTime(6);
+
+    if ($time < 1) {
+        return round($time * 1000, 2) . ' ms';
+    }
+
+    return $time . ' s';
+}
+
+
 function dhex($key = "all")
 {
     if ($key != "all") {
